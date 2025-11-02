@@ -30,6 +30,8 @@ properties:
               - milkv,mars
               - milkv,marscm-emmc
               - milkv,marscm-lite
+              - pine64,pinetabv-2023
+              - pine64,pinetabv-2025
               - pine64,star64
               - starfive,visionfive-2-v1.2a
               - starfive,visionfive-2-v1.3b
