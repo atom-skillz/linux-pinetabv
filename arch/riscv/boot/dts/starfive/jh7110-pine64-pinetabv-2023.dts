@@ -1,0 +1,25 @@
+// SPDX-License-Identifier: GPL-2.0 OR MIT
+/*
+ * Copyright (C) 2022 StarFive Technology Co., Ltd.
+ * Copyright (C) 2022 Hal Feng <hal.feng@starfivetech.com>
+ * Copyright (C) 2025 Icenowy Zheng <uwu@icenowy.me>
+ */
+
+/dts-v1/;
+#include "jh7110-pine64-pinetabv.dtsi"
+
+/ {
+	model = "Pine64 PineTab-V (2023)";
+	compatible = "pine64,pinetabv-2023", "pine64,pinetabv", "starfive,jh7110";
+};
+
+&gpio_keys {
+	key-vol-up {
+		debounce-interval = <10>;
+		/* incorrectly labeled as Vol- in pinetab-v 2023 schematic */
+		gpios = <&sysgpio 51 GPIO_ACTIVE_LOW>;
+		label = "Volume Up";
+		linux,input-type = <EV_KEY>;
+		linux,code = <KEY_VOLUMEUP>;
+	};
+};

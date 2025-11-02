@@ -1,0 +1,146 @@
+// SPDX-License-Identifier: GPL-2.0 OR MIT
+/*
+ * Copyright (C) 2022 StarFive Technology Co., Ltd.
+ * Copyright (C) 2022 Hal Feng <hal.feng@starfivetech.com>
+ * Copyright (C) 2025 Icenowy Zheng <uwu@icenowy.me>
+ */
+
+/dts-v1/;
+#include "jh7110-common.dtsi"
+#include <dt-bindings/input/linux-event-codes.h>
+#include <dt-bindings/leds/common.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/ {
+	chassis-type = "tablet";
+
+	battery: battery {
+		compatible = "simple-battery";
+		charge-full-design-microamp-hours = <9800000>;
+		voltage-max-design-microvolt = <4350000>;
+		voltage-min-design-microvolt = <3000000>;
+	};
+
+	gpio_keys: gpio-keys {
+		compatible = "gpio-keys";
+		autorepeat;
+
+		key-vol-down {
+			debounce-interval = <10>;
+			/* incorrectly labeled as Vol+ in pinetab-v 2023 schematic */
+			gpios = <&sysgpio 49 GPIO_ACTIVE_LOW>;
+			label = "Volume Up";
+			linux,input-type = <EV_KEY>;
+			linux,code = <KEY_VOLUMEDOWN>;
+		};
+
+		key-power {
+			debounce-interval = <10>;
+			gpios = <&sysgpio 59 GPIO_ACTIVE_HIGH>;
+			label = "Power Button";
+			linux,input-type = <EV_KEY>;
+			linux,code = <KEY_POWER>;
+		};
+
+		switch-hall-sensor {
+			debounce-interval = <10>;
+			gpios = <&sysgpio 40 GPIO_ACTIVE_LOW>;
+			label = "Tablet Mode";
+			linux,input-type = <EV_SW>;
+			linux,code = <SW_TABLET_MODE>;
+		};
+	};
+
+	gpio-restart {
+		compatible = "gpio-restart";
+		gpios = <&sysgpio 35 GPIO_ACTIVE_HIGH>;
+		priority = <160>;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led-flash {
+			color = <LED_COLOR_ID_WHITE>;
+			function = LED_FUNCTION_FLASH;
+			gpios = <&sysgpio 55 GPIO_ACTIVE_HIGH>;
+			label = "Camera Flash";
+			linux,default-trigger = "flash";
+			power-supply = <&vcc_5v>;
+		};
+	};
+
+	vcc_5v: regulator-vcc-5v {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		gpio = <&sysgpio 39 GPIO_ACTIVE_HIGH>;
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-max-microvolt = <5000000>;
+		regulator-min-microvolt = <5000000>;
+		regulator-name = "vcc-5v";
+	};
+
+	vcc_wifi_3v3: vcc-wifi_3v3 {
+		compatible = "regulator-fixed";
+		enable-active-low;
+		gpio = <&sysgpio 46 GPIO_ACTIVE_LOW>;
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "wifi_3v3";
+		vin-supply = <&vcc_3v3>;
+	};
+};
+
+&i2c2 {
+	touchscreen@14 {
+		compatible = "goodix,gt911";
+		reg = <0x14>;
+		AVDD28-supply = <&vcc_3v3>;
+		interrupt-parent = <&sysgpio>;
+		interrupts = <30 IRQ_TYPE_EDGE_FALLING>;
+		irq-gpios = <&sysgpio 30 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		reset-gpios = <&sysgpio 31 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+};
+
+&usb0 {
+	dr_mode = "host";
+	pinctrl-0 = <&usb0_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&usb_cdns3 {
+	phy-names = "cdns3,usb2-phy", "cdns3,usb3-phy";
+	phys = <&usbphy0>, <&pciephy0>;
+};
+
+&sysgpio {
+	usb0_pins: usb0-0 {
+		vbus-pins {
+			bias-disable;
+			input-disable;
+			input-schmitt-disable;
+			pinmux = <GPIOMUX(25, GPOUT_SYS_USB_DRIVE_VBUS,
+					      GPOEN_ENABLE,
+					      GPI_NONE)>;
+			slew-rate = <0>;
+		};
+
+		usb-pins {
+			bias-disable;
+			pinmux = <GPIOMUX(43, GPOUT_LOW,
+					      GPOEN_DISABLE,
+					      GPI_NONE)>;
+		};
+	};
+};
+
+&pcie0 {
+	status = "okay";
+};
